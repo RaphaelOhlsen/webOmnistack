@@ -1,26 +1,115 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from 'react';
+import api from './services/api';
 
-function App() {
+import './global.css';
+import './App.css';
+import './Sidebar.css';
+import './Main.css';
+
+
+const App = () => {
+  const [latitude, setLatitude] = useState(-20.2917397);
+  const [longitude, setLongitude] = useState(-40.2986506);
+  const [github_username, setGithubUsername] = useState('');
+  const [techs, setTechs] = useState('');
+  const [devs, setDevs] = useState([[]]);
+
+  useEffect(() => {
+    async function loadDevs() {
+      const res = await api.get('/devs');
+      setDevs(res.data);
+    }
+    loadDevs();
+  }, []);
+
+  async function handleAddDev(e) {
+    e.preventDefault();
+
+    const res = await api.post('/devs', {
+      github_username,
+      techs,
+      latitude,
+      longitude
+    });
+    
+    setGithubUsername('');
+    setTechs('');
+  }
+
+
+  
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div id="app">
+      <aside>
+        <strong>Cadastrar</strong>
+        <form onSubmit={handleAddDev}>
+          <div className="input-block">
+            <label htmlFor="github_username">Usuário do GitHub</label>
+            <input 
+              name="github_username" 
+              id="githubuser_name" 
+              value={github_username}
+              onChange={e => setGithubUsername(e.target.value)}
+              required
+            />
+          </div>
+          <div className="input-block">
+            <label htmlFor="techs">Tecnologias</label>
+            <input 
+              name="techs" 
+              id="techs" 
+              required
+              value={techs}
+              onChange={e => setTechs(e.target.value)}
+            />
+          </div>
+          <div className="input-group">
+            <div className="input-block">
+              <label htmlFor="latitude">Latitude</label>
+              <input 
+                type="number" 
+                name="latitude" 
+                id="latitude" 
+                required 
+                value={latitude}
+                onChange={e => setLatitude(e.target.value)}
+              />
+            </div>
+            <div className="input-block">
+              <label htmlFor="longitude">Longitude</label>
+              <input 
+                type="number" 
+                name="longitude" 
+                id="longitude" 
+                required 
+                value={longitude}
+                onChange={e => setLongitude(e.target.value)}
+              />
+            </div>
+          </div>
+            <button type="submit">Salvar</button>
+        </form>
+      </aside>
+      <main>
+        <ul>
+          { devs.map(dev => (
+            <li className="dev-item">
+              <header>
+                <img src={dev.avatar_url} alt="dev.name"/>
+                <div className="user-info">
+                  <strong>{dev.name}</strong>
+                  <span>{dev.techs.join(', ')}</span>
+                </div>
+              </header>
+              <p>{dev.bio}</p>
+              <a href={`https://github.com/${dev.github_username}`}>Acessar perfil no GitHub</a>
+            </li>
+          ))}
+        </ul>
+      </main>
     </div>
-  );
+  )
 }
 
 export default App;
